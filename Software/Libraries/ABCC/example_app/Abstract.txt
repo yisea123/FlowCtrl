@@ -1,0 +1,47 @@
+/*******************************************************************************
+********************************************************************************
+**                                                                            **
+** ABCC Starter Kit version 3.02.02 (2016-11-10)                              **
+**                                                                            **
+** Delivered with:                                                            **
+**    ABP            7.31.01 (2016-09-16)                                     **
+**    ABCC Driver    5.02.01 (2016-11-02)                                     **
+**                                                                            */
+#################################### IMPORTANT #################################
+
+Before proceeding to plug in and use the ABCC Option Card with the STM3240G-EVAL
+board please consult the quick start guide as there are neccessary hardware
+changes for the device to function properly. Failure to perform these actions may
+result in hardware failure.
+
+################################################################################
+
+This is a demo application of the HMS ABCC SDK
+
+ Target Platform:
+    STM3240G-EVAL Board with HMS ABCC Option Card
+
+ Platform BSP Version:
+    STM32Cube FW_F4 V1.13.0
+
+ Development Environment:
+    Keil uVision IDE v4.74.0.22
+
+ This demo is delivered with a preconfigured application example, "appl_adimap_board_io.c" 
+ that interfaces with various peripherals that exist on the STM32 Eval Board as well as the
+ Option Card. These peripherals include:
+ - 3 HEX Switches (connected to I2C1 via an I2C IO-Expander)
+ - 12 LEDs (connected to I2C1 via an I2C IO-Expander)
+ - 8 I/Os (all used as outputs) (connected to I2C1 via an I2C IO-Expander)
+ - 1 Momentary Pushbutton (Key)
+ - 1 Potentiometer (RV1)
+ - 1 Internal timer (TIM5)
+ 
+ This demo additionally makes use of the following peripherals:
+ - The MB785 graphical LCD module (connected to FSMC chip select 3)
+ - CN16 RSR232 interface (connected to UART3)
+ 
+ Supported operating modes:
+ - Serial (on UART6)
+ - SPI (on SPI2)
+ - 8-bit/16-bit Parallel (on FSMC chip select 1)

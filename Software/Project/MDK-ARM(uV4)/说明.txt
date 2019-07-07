@@ -1,0 +1,53 @@
+project.uvproj       MDK uV4工程文件,双击这个文件可启动MDK
+
+project.uvopt        MDK uV4工程配置参数
+
+CpuRAM.ini           在CPU内部RAM调试的脚本(文本文件)，当启动调试时，调试器自动执行脚本文件，将代码装载在CPU内部RAM
+
+CopyHex_Flash.bat    批处理文件,编译连接成功后将Flash\Obj下的Hex文件复制到前级目录
+
+CopyHex_CpuRAM.bat   批处理文件,编译连接成功后将CpuRAM\Obj下的Hex文件复制到前级目录
+
+要说明的问题：
+SetParameterRequest  为1表示已经建立起连接
+
+/* 测试flash */
+if(1 == sf_WriteBuffer(buffer, 0, 10))
+{
+	printf("flash write ok\n");
+}
+
+sf_ReadBuffer(buffer1, 0, 10);
+printf("read");
+for(i=0; i<10; i++)
+{
+	printf(" %d", buffer1[i]);
+}
+printf("\n");
+
+		
+		printf("power is %d\n", PowerVal);
+	
+		key = bsp_Tm1638ReadKey();
+		if(key != 0)
+		{
+			printf("key is 0x%x\n", key);
+		}
+		if(key == 0x4000000)
+		{
+			bsp_SetRelay2State(RELAY_ON);
+		}
+		if(key == 0x40000000)
+		{
+			bsp_SetRelay2State(RELAY_OFF);
+		}
+//		printf("%d - %d\n", g_usHuba1, g_usHuba2);
+
+
+1 DelayToDetect 单位设置的是s
+2 界面没有自动更换电极帽的按钮
+3 抽水泵是 UserDO01
+4 进水阀门是 UserDO02
+5 自动更换电极帽中，第(4)，如何判断抽水泵工作完毕，程序暂时设置为延时5s
+6 6.1.2 进水流量异常：(1) (2) 是指进水流量，(3)是回水流量吗？
+7 bypass模式 或者 value closed模式下，自动更换电极帽时，是否正常控制电磁阀？
