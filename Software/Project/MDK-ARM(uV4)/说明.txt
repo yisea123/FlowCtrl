@@ -51,3 +51,15 @@ printf("\n");
 5 自动更换电极帽中，第(4)，如何判断抽水泵工作完毕，程序暂时设置为延时5s
 6 6.1.2 进水流量异常：(1) (2) 是指进水流量，(3)是回水流量吗？
 7 bypass模式 或者 value closed模式下，自动更换电极帽时，是否正常控制电磁阀？
+8 数码管的设置：
+	第一个数码管为功能数码管：
+#define FLOW_VALUE					0
+#define FLOW_WARNING_VALUE			1
+#define FLOW_FAULT_VALUE			2
+#define LEAK_RESPONSE_VALUE			3
+#define DELAY_TO_DETECT				4
+#define LEAK_FLOW_DIFFERENCE		5
+    后三位为对应的值，之间用句号隔开。
+9 按键的设置：
+	依次为 select exit up down, inputkey  pumpkey
+

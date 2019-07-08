@@ -134,6 +134,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
+          <Name>l/?l%??r</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -165,25 +166,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>765</LineNumber>
+          <LineNumber>331</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134220424</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\..\Libraries\ABCC\example_app\appl_abcc_handler.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\output\../../Libraries/ABCC/example_app/appl_abcc_handler.c\765</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>462</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134233820</Address>
+          <Address>134233826</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -192,23 +177,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>..\..\User\app.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\output\../../User/app.c\462</Expression>
-        </Bp>
-        <Bp>
-          <Number>2</Number>
-          <Type>0</Type>
-          <LineNumber>476</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134233860</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\..\User\app.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\output\../../User/app.c\476</Expression>
+          <Expression>\\output\../../User/app.c\331</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -1485,7 +1454,7 @@
 
   <Group>
     <GroupName>Doc</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

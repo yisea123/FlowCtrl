@@ -73,7 +73,7 @@ static void AppTaskUserIF(void *p_arg);
 static void AppTaskLED(void *p_arg);
 static void DispTaskInfo(void);
 static void AppTaskCom(void *p_arg);
-static void  App_Printf (CPU_CHAR *format, ...);
+static void App_Printf (CPU_CHAR *format, ...);
 
 static void writeParamFromFlash(void);
 static void readParamFromFlash(void);
@@ -82,6 +82,16 @@ static void readParamFromFlash(void);
 *                               变量
 *******************************************************************************************************
 */
+
+#define KEY_SELECT    KEY_Line1_K1
+#define KEY_EXIT      KEY_Line1_K2
+#define KEY_UP        KEY_Line1_K3
+#define KEY_DOWN      KEY_Line1_K4
+
+#define KEY_CtrlInput KEY_Line1_K5
+#define KEY_CtrlPump  KEY_Line1_K6
+
+
 
 /* 定义一个邮箱， 这只是一个邮箱指针， OSMboxCreate函数会创建邮箱必需的资源 */
 static OS_EVENT *AppUserIFMbox;
@@ -297,7 +307,7 @@ static void AppTaskStart(void *p_arg)
 	while (1)     
 	{ 	
 		OSTimeDlyHMSM(0, 0, 1, 0);
-		printf("input:%d  output:%d\n", SupplyFlowInLPM, ReturnFlowInLPM);
+//		printf("input:%d  output:%d\n", SupplyFlowInLPM, ReturnFlowInLPM);
 	}      
 }
 
@@ -318,7 +328,6 @@ static void AppTaskKeyScan(void *p_arg)
 		  
 	while(1)
 	{    
-		bsp_Tm1638Disp(0, 0, 0, 0, 0);   /* 显示数据 */
 		ucTemp = bsp_Tm1638ReadKey();;   /* 读取键盘 */
 		if (ucTemp > 0)
 		{	
@@ -341,34 +350,152 @@ static void AppTaskKeyScan(void *p_arg)
 	优 先 级: 2
 *********************************************************************************************************
 */
+#define FLOW_VALUE					0
+#define FLOW_WARNING_VALUE			1
+#define FLOW_FAULT_VALUE			2
+#define LEAK_RESPONSE_VALUE			3
+#define DELAY_TO_DETECT				4
+#define LEAK_FLOW_DIFFERENCE		5
+
 static void AppTaskUserIF(void *p_arg)
 {
 	INT8U   msg;
 	INT8U   err;
+	INT8U   timeout = 0;
+	INT8U   input_state = RELAY_OFF;
+	INT8U   pump_state = RELAY_OFF;
+	INT8U   key_state = 0;
+	INT8U   select_state = 0;
+	INT8U   flow_value = 0;
 	
    (void)p_arg;	 
-    
+	
 	while (1) 
 	{
 		msg = *(INT8U *)(OSMboxPend(AppUserIFMbox, OS_TICKS_PER_SEC , &err));
 		if (err == OS_ERR_NONE)                             /* 无错表示成功接收到一个消息 */
 		{
-			/* 按键K1按下，打印任务执行情况 */
-			if (msg == KEY_Line1_K1)		
+			printf("key_state = %d, select %d\n", KEY_SELECT, select_state);
+			if (msg == KEY_SELECT)		
 			{    
-				DispTaskInfo();
+//				DispTaskInfo();
+				key_state = KEY_SELECT;
+				timeout = 0;
+				select_state++;
+				if(select_state == 6)
+				{
+					select_state = 1;
+				}
 			}
-			/* 按键K2按下，打印K2按下消息，K2按键还有一个功能就是将系统从待机模式唤醒 */
-			else if (msg == KEY_Line1_K2)
+			else if (msg == KEY_EXIT)
 			{
-				App_Printf("K2按键按下\r\n");
+				key_state =  0;
+				select_state = 0;
 			}
-			/* 按键K3按下，进入到待机模式 */
-			else if (msg == KEY_Line1_K3)		
+			else if (msg == KEY_UP)		
 			{ 
-
+				switch(select_state)
+				{
+					case FLOW_WARNING_VALUE:
+						FlowWarningValue++;
+						break;
+					case FLOW_FAULT_VALUE:
+						FlowFaultValue++;
+						break;
+					case LEAK_RESPONSE_VALUE:
+						LeakResponseValue++;
+						break;
+					case DELAY_TO_DETECT:
+						DelayToDetect++;
+						break;
+					case LEAK_FLOW_DIFFERENCE:
+						LeakFlowDifference++;
+						break;
+					default:
+						break;
+				}
 			}	
+			else if (msg == KEY_DOWN)
+			{
+				switch(select_state)
+				{
+					case FLOW_WARNING_VALUE:
+						FlowWarningValue--;
+						break;
+					case FLOW_FAULT_VALUE:
+						FlowFaultValue--;
+						break;
+					case LEAK_RESPONSE_VALUE:
+						LeakResponseValue--;
+						break;
+					case DELAY_TO_DETECT:
+						DelayToDetect--;
+						break;
+					case LEAK_FLOW_DIFFERENCE:
+						LeakFlowDifference--;
+						break;
+					default:
+						break;
+				}
+			}
+			else if (msg == KEY_CtrlInput)		
+			{ 
+				if(input_state == RELAY_OFF)
+					input_state = RELAY_ON;
+				else
+					input_state = RELAY_OFF;
+
+				CtrlInputWaterCtrl(input_state);
+			}	
+			else if (msg == KEY_CtrlPump)		
+			{ 
+				if(pump_state == RELAY_OFF)
+					pump_state = RELAY_ON;
+				else
+					pump_state = RELAY_OFF;
+
+				CtrlPumpWater(pump_state);
+			}	
+			else
+			{
+				if(key_state == KEY_SELECT)
+				{
+					timeout++;
+					if(timeout >= 5)
+					{
+						key_state = 0;
+						select_state = 0;
+					}
+				}
+				
+			}
 		}
+		
+		switch(select_state)
+		{
+			case FLOW_VALUE:
+				bsp_Tm1638Disp(0, SupplyFlowInLPM/100%10, SupplyFlowInLPM/10%10, SupplyFlowInLPM%10, 1);   /* 显示数据 */
+				break;
+			case FLOW_WARNING_VALUE:
+				bsp_Tm1638Disp(1, FlowWarningValue/100%10, FlowWarningValue/10%10, FlowWarningValue%10, 1);  
+				break;
+			case FLOW_FAULT_VALUE:
+				bsp_Tm1638Disp(2, FlowFaultValue/100%10, FlowFaultValue/10%10, FlowFaultValue%10, 1);  
+				break;
+			case LEAK_RESPONSE_VALUE:
+				bsp_Tm1638Disp(3, LeakResponseValue/100%10, LeakResponseValue/10%10, LeakResponseValue%10, 1);  
+				break;
+			case DELAY_TO_DETECT:
+				bsp_Tm1638Disp(4, DelayToDetect/100%10, DelayToDetect/10%10, DelayToDetect%10, 1); 
+				break;
+			case LEAK_FLOW_DIFFERENCE:
+				bsp_Tm1638Disp(5, LeakFlowDifference/100%10, LeakFlowDifference/10%10, LeakFlowDifference%10, 1); 
+				break;
+			default:
+				break;
+		}		
+		
+		
 	}		
 }
 
@@ -561,6 +688,7 @@ static void AppTaskFlow(void *p_arg)
 		}
 		else
 		{
+			Leak = 0;
 			leakTime = 0;
 		}
 		
@@ -588,7 +716,33 @@ static void AppTaskLED(void *p_arg)
 		
 	while (1) 
 	{
-		bsp_LedToggle(1);
+		if(OkToWeld == 1)
+		{
+			bsp_LedToggle(LED_FLOW_OK);
+		}
+		else
+		{
+			bsp_LedOff(LED_FLOW_OK);
+		}
+		
+		if((FlowWarning == 1) || (Leak == 1))
+		{
+			bsp_LedToggle(LED_FAULT);
+		}
+		else
+		{
+			bsp_LedOff(LED_FAULT);
+		}		
+		
+		if(Bypass == 1)
+		{
+			bsp_LedToggle(LED_BYPASS);
+		}
+		else
+		{
+			bsp_LedOff(LED_BYPASS);
+		}
+		
 		PowerVal = Adc1_Collect();  /* collect power */
 		OSTimeDlyHMSM(0, 0, 0, 500);		
 	}

@@ -19,6 +19,9 @@
 #define KEY_Line1_K1   0x01
 #define KEY_Line1_K2   0x02
 #define KEY_Line1_K3   0x03
+#define KEY_Line1_K4   0x04
+#define KEY_Line1_K5   0x05
+#define KEY_Line1_K6   0x06
 
 /* 供外部调用的函数声明 */
 void bsp_InitTm1638(void);
