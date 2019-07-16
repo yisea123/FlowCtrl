@@ -525,6 +525,8 @@ static void AppTaskCom(void *p_arg)
 		switch( eAbccHandlerStatus )
 		{
 			case APPL_MODULE_RESET:
+				APPL_RestartAbcc();
+				OSTimeDly(8000);
 				NVIC_SystemReset();
 				break;
 			default:

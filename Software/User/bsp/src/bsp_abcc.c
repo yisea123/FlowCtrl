@@ -41,6 +41,13 @@ void bsp_spi1Init(void)
 
 	//GPIO配置  
 	/* 配置 SPI引脚SCK、MISO 和 MOSI为复用推挽模式 */
+	GPIO_InitStructure.GPIO_Pin = ABCC_RST_PIN;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(ABCC_RST_GPIO, &GPIO_InitStructure);
+
+	ABCC_RST_1();
+	
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Pin = SPI1_PIN_SCK;	
@@ -56,11 +63,6 @@ void bsp_spi1Init(void)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(SPI1_PORT_CS, &GPIO_InitStructure);
-	
-	GPIO_InitStructure.GPIO_Pin = ABCC_RST_PIN;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(ABCC_RST_GPIO, &GPIO_InitStructure);
 
 	SPI1_CS_1();
 

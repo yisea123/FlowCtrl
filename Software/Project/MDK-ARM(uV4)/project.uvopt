@@ -134,7 +134,6 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name>l/?l%??r</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -166,18 +165,50 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>331</LineNumber>
+          <LineNumber>601</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134233826</Address>
+          <Address>134232348</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\..\User\app.c</Filename>
+          <Filename>..\..\Libraries\ABCC\example_app\appl_abcc_handler.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\output\../../User/app.c\331</Expression>
+          <Expression>\\output\../../Libraries/ABCC/example_app/appl_abcc_handler.c\601</Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>609</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134232366</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\..\Libraries\ABCC\example_app\appl_abcc_handler.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\output\../../Libraries/ABCC/example_app/appl_abcc_handler.c\609</Expression>
+        </Bp>
+        <Bp>
+          <Number>2</Number>
+          <Type>0</Type>
+          <LineNumber>616</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134232382</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\..\Libraries\ABCC\example_app\appl_abcc_handler.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\output\../../Libraries/ABCC/example_app/appl_abcc_handler.c\616</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -1386,7 +1417,7 @@
 
   <Group>
     <GroupName>ABCC_APP</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -1454,7 +1485,7 @@
 
   <Group>
     <GroupName>Doc</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
