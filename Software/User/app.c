@@ -304,6 +304,9 @@ static void AppTaskStart(void *p_arg)
 	/* 创建应用程序的任务 */
 	AppTaskCreate();
 	
+	OSTimeDlyHMSM(0, 0, 5, 0);
+	APPL_RestartAbcc();  /* 复位ABCC */
+	
 	while (1)     
 	{ 	
 		OSTimeDlyHMSM(0, 0, 1, 0);
@@ -516,6 +519,8 @@ static void AppTaskCom(void *p_arg)
 
 	bsp_abccInit();     /* abcc初始化 */
 	
+	
+	
 	while(1)
 	{		 		 
 		eAbccHandlerStatus = APPL_HandleAbcc();
@@ -525,8 +530,6 @@ static void AppTaskCom(void *p_arg)
 		switch( eAbccHandlerStatus )
 		{
 			case APPL_MODULE_RESET:
-				APPL_RestartAbcc();
-				OSTimeDly(8000);
 				NVIC_SystemReset();
 				break;
 			default:
