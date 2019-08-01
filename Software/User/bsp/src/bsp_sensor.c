@@ -36,7 +36,7 @@ static uint8_t  Huba2Index = 0;
 /*
 *********************************************************************************************************
 *	函 数 名: 
-*	功能说明: 频率范围大概是 20Hz-270Hz
+*	功能说明: 频率范围大概是 20Hz-270Hz  => 50ms => 
 *	形    参: 无
 *	返 回 值: 无
 *********************************************************************************************************
@@ -59,9 +59,9 @@ void bsp_SensorInit(uint16_t psc, uint16_t arr)
 	GPIO_Init(HUBA2_GPIO, &GPIO_InitStructure);
 
 
-	TIM_TimeBaseStructure.TIM_Prescaler = psc;   
+	TIM_TimeBaseStructure.TIM_Prescaler = psc;   // 720 => 10us => 100Khz
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up; 
-	TIM_TimeBaseStructure.TIM_Period = arr;   
+	TIM_TimeBaseStructure.TIM_Period = arr;      // 60000 => 记到 6000 * 10us = 60000us = 600ms  => 1.6Hz
 	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1; 
 	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
 	usPeriod = arr;
@@ -122,6 +122,7 @@ void TIM3_IRQHandler(void)
 	if(TIM3->SR & TIM_IT_CC3)
 	{
 		temp = TIM3->CCR3;
+
 		if(last_huba1 != 0)
 		{
 			if(temp < last_huba1)
@@ -130,7 +131,7 @@ void TIM3_IRQHandler(void)
 				g_usHuba1 = temp - last_huba1;		
 		}
 		
-		last_huba1 = TIM3->CCR3;
+		last_huba1 = temp;
 		cc3flg = 1;
 		
 		Huba1Buf[Huba1Index] = g_usHuba1;
@@ -144,6 +145,7 @@ void TIM3_IRQHandler(void)
 	if(TIM3->SR & TIM_IT_CC4)
 	{
 		temp = TIM3->CCR4;
+	
 		if(last_huba2 != 0)
 		{
 			if(temp < last_huba2)
@@ -152,7 +154,7 @@ void TIM3_IRQHandler(void)
 				g_usHuba2 = temp - last_huba2;			
 		}
 
-		last_huba2 = TIM3->CCR4;
+		last_huba2 = temp;
 		cc4flg = 1;
 		
 		Huba2Buf[Huba2Index] = g_usHuba2;

@@ -218,14 +218,14 @@ void CalcFlowValue(void)
 	{
 		sum += Huba1Buf[index];
 	}
-	SupplyFlowInLPM = sum / HUBA_BUF_LEN * 10 * 0.185;
+	SupplyFlowInLPM = sum / HUBA_BUF_LEN * 10 * 0.186;
 	
 	sum = 0;
 	for(index=0; index<HUBA_BUF_LEN; index++)
 	{
 		sum += Huba2Buf[index];
 	}
-	ReturnFlowInLPM = sum / HUBA_BUF_LEN * 10 * 0.185;	
+	ReturnFlowInLPM = sum / HUBA_BUF_LEN * 10 * 0.186;	
 }
 
 
@@ -310,7 +310,7 @@ static void AppTaskStart(void *p_arg)
 	while (1)     
 	{ 	
 		OSTimeDlyHMSM(0, 0, 1, 0);
-//		printf("input:%d  output:%d\n", SupplyFlowInLPM, ReturnFlowInLPM);
+		printf("input:%dhz  output:%dhz\n", 1000000/(g_usHuba1*10), 1000000/(g_usHuba2*10));
 	}      
 }
 
