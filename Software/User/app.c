@@ -82,14 +82,13 @@ static void readParamFromFlash(void);
 *                               变量
 *******************************************************************************************************
 */
+#define KEY_UP        		KEY_Line1_K1
+#define KEY_DOWN      		KEY_Line1_K2
+#define KEY_SELECT_EXIT     KEY_Line1_K3
 
-#define KEY_SELECT    KEY_Line1_K1
-#define KEY_EXIT      KEY_Line1_K2
-#define KEY_UP        KEY_Line1_K3
-#define KEY_DOWN      KEY_Line1_K4
-
-#define KEY_CtrlInput KEY_Line1_K5
-#define KEY_CtrlPump  KEY_Line1_K6
+#define KEY_BYPASS			KEY_Line1_K4
+#define KEY_VALVE			KEY_Line1_K5
+#define KEY_RESET			KEY_Line1_K6
 
 
 
@@ -212,18 +211,21 @@ void CalcFlowValue(void)
 {
 	uint8_t index = 0;
 	uint32_t sum = 0;
+	uint16_t temp = 0;
 
 	sum = 0;
 	for(index=0; index<HUBA_BUF_LEN; index++)
 	{
-		sum += Huba1Buf[index];
+		temp = 1000000/(Huba1Buf[index]*10);
+		sum += temp;
 	}
 	SupplyFlowInLPM = sum / HUBA_BUF_LEN * 10 * 0.186;
 	
 	sum = 0;
 	for(index=0; index<HUBA_BUF_LEN; index++)
 	{
-		sum += Huba2Buf[index];
+		temp = 1000000/(Huba2Buf[index]*10);
+		sum += temp;
 	}
 	ReturnFlowInLPM = sum / HUBA_BUF_LEN * 10 * 0.186;	
 }
@@ -360,16 +362,20 @@ static void AppTaskKeyScan(void *p_arg)
 #define DELAY_TO_DETECT				4
 #define LEAK_FLOW_DIFFERENCE		5
 
+#define FUN_SELECT                  0
+#define PARAM_SELECT                1
+
 static void AppTaskUserIF(void *p_arg)
 {
 	INT8U   msg;
 	INT8U   err;
 	INT8U   timeout = 0;
-	INT8U   input_state = RELAY_OFF;
-	INT8U   pump_state = RELAY_OFF;
 	INT8U   key_state = 0;
-	INT8U   select_state = 0;
+	INT8S   select_state = 0;
 	INT8U   flow_value = 0;
+	INT8U   key_up_down_fun = 0;
+	UINT8   smg_value = 0;
+	UINT8   smg_value_zs = 0, smg_value_xs = 0;
 	
    (void)p_arg;	 
 	
@@ -378,106 +384,140 @@ static void AppTaskUserIF(void *p_arg)
 		msg = *(INT8U *)(OSMboxPend(AppUserIFMbox, OS_TICKS_PER_SEC , &err));
 		if (err == OS_ERR_NONE)                             /* 无错表示成功接收到一个消息 */
 		{
-			printf("key_state = %d, select %d\n", KEY_SELECT, select_state);
-			if (msg == KEY_SELECT)		
+			printf("key_state = %d, select %d\n", KEY_SELECT_EXIT, select_state);
+			if (msg == KEY_SELECT_EXIT)		
 			{    
 //				DispTaskInfo();
-				key_state = KEY_SELECT;
-				timeout = 0;
-				select_state++;
-				if(select_state == 6)
+				if(key_up_down_fun == FUN_SELECT)
 				{
-					select_state = 1;
+					if(select_state != FLOW_VALUE)
+					{
+						key_up_down_fun = PARAM_SELECT;
+					}					
 				}
-			}
-			else if (msg == KEY_EXIT)
-			{
-				key_state =  0;
-				select_state = 0;
+				else
+				{
+					select_state = FLOW_VALUE;
+					key_up_down_fun = FUN_SELECT;
+				}
 			}
 			else if (msg == KEY_UP)		
 			{ 
-				switch(select_state)
+				if(key_up_down_fun == FUN_SELECT)
 				{
-					case FLOW_WARNING_VALUE:
-						FlowWarningValue++;
-						break;
-					case FLOW_FAULT_VALUE:
-						FlowFaultValue++;
-						break;
-					case LEAK_RESPONSE_VALUE:
-						LeakResponseValue++;
-						break;
-					case DELAY_TO_DETECT:
-						DelayToDetect++;
-						break;
-					case LEAK_FLOW_DIFFERENCE:
-						LeakFlowDifference++;
-						break;
-					default:
-						break;
+					select_state++;
+					if(select_state == 6)
+					{
+						select_state = 1;
+					}					
 				}
+				else
+				{
+					switch(select_state)
+					{
+						case FLOW_WARNING_VALUE:
+							FlowWarningValue++;
+							break;
+						case FLOW_FAULT_VALUE:
+							FlowFaultValue++;
+							break;
+						case LEAK_RESPONSE_VALUE:
+							LeakResponseValue++;
+							break;
+						case DELAY_TO_DETECT:
+							DelayToDetect++;
+							break;
+						case LEAK_FLOW_DIFFERENCE:
+							LeakFlowDifference++;
+							break;
+						default:
+							break;
+					}				
+				}
+
 			}	
 			else if (msg == KEY_DOWN)
 			{
-				switch(select_state)
+				if(key_up_down_fun == FUN_SELECT)
 				{
-					case FLOW_WARNING_VALUE:
-						FlowWarningValue--;
-						break;
-					case FLOW_FAULT_VALUE:
-						FlowFaultValue--;
-						break;
-					case LEAK_RESPONSE_VALUE:
-						LeakResponseValue--;
-						break;
-					case DELAY_TO_DETECT:
-						DelayToDetect--;
-						break;
-					case LEAK_FLOW_DIFFERENCE:
-						LeakFlowDifference--;
-						break;
-					default:
-						break;
+					select_state--;
+					if(select_state == 0)
+					{
+						select_state = 5;
+					}					
 				}
-			}
-			else if (msg == KEY_CtrlInput)		
-			{ 
-				if(input_state == RELAY_OFF)
-					input_state = RELAY_ON;
 				else
-					input_state = RELAY_OFF;
-
-				CtrlInputWaterCtrl(input_state);
+				{
+					switch(select_state)
+					{
+						case FLOW_WARNING_VALUE:
+							FlowWarningValue--;
+							break;
+						case FLOW_FAULT_VALUE:
+							FlowFaultValue--;
+							break;
+						case LEAK_RESPONSE_VALUE:
+							LeakResponseValue--;
+							break;
+						case DELAY_TO_DETECT:
+							DelayToDetect--;
+							break;
+						case LEAK_FLOW_DIFFERENCE:
+							LeakFlowDifference--;
+							break;
+						default:
+							break;
+					}					
+				}
+			}		
+			else if (msg == KEY_BYPASS)
+			{
+				CtrlInputWaterCtrl(RELAY_ON);  /* 打开电磁阀  - 打开进水 */
+				FlowOff = 0;
+				Bypass = 1;                    /* Bypass为1，则Relay1不再关闭  */					
+			}			
+			else if (msg == KEY_VALVE)		
+			{ 
+				CtrlInputWaterCtrl(RELAY_ON);  /* 打开电磁阀  - 打开进水 */
+				FlowOff = 0;
 			}	
-			else if (msg == KEY_CtrlPump)		
+			else if (msg == KEY_RESET)		
 			{ 
-				if(pump_state == RELAY_OFF)
-					pump_state = RELAY_ON;
-				else
-					pump_state = RELAY_OFF;
-
-				CtrlPumpWater(pump_state);
+				NVIC_SystemReset();
 			}	
 			else
 			{
-				if(key_state == KEY_SELECT)
+
+			}
+		}
+		else
+		{
+			timeout++;
+			if(timeout >= 30)
+			{
+				timeout = 0;
+				if(key_up_down_fun == PARAM_SELECT)
 				{
-					timeout++;
-					if(timeout >= 5)
-					{
-						key_state = 0;
-						select_state = 0;
-					}
-				}
-				
+					select_state = FLOW_VALUE;
+					key_up_down_fun = FUN_SELECT;				
+				}			
 			}
 		}
 		
 		switch(select_state)
 		{
 			case FLOW_VALUE:
-				bsp_Tm1638Disp(0, SupplyFlowInLPM/100%10, SupplyFlowInLPM/10%10, SupplyFlowInLPM%10, 1);   /* 显示数据 */
+				smg_value = ReturnFlowInLPM;
+				if(smg_value < 10)
+				{
+					bsp_Tm1638Disp(0, smg_value/100%10, smg_value/10%10, smg_value%10, 0);   /* 显示数据 */
+				}
+				else
+				{
+					smg_value_zs = smg_value / 10;
+					smg_value_xs = smg_value % 10;
+					bsp_Tm1638Disp(0, smg_value_zs/10%10, smg_value_zs%10, smg_value_xs, 3);   /* 显示数据 */
+				}			
 				break;
 			case FLOW_WARNING_VALUE:
 				bsp_Tm1638Disp(1, FlowWarningValue/100%10, FlowWarningValue/10%10, FlowWarningValue%10, 1);  
@@ -518,9 +558,7 @@ static void AppTaskCom(void *p_arg)
 	(void)p_arg;
 
 	bsp_abccInit();     /* abcc初始化 */
-	
-	
-	
+
 	while(1)
 	{		 		 
 		eAbccHandlerStatus = APPL_HandleAbcc();
@@ -723,7 +761,7 @@ static void AppTaskLED(void *p_arg)
 	{
 		if(OkToWeld == 1)
 		{
-			bsp_LedToggle(LED_FLOW_OK);
+			bsp_LedOn(LED_FLOW_OK);
 		}
 		else
 		{
@@ -732,7 +770,7 @@ static void AppTaskLED(void *p_arg)
 		
 		if((FlowWarning == 1) || (Leak == 1))
 		{
-			bsp_LedToggle(LED_FAULT);
+			bsp_LedOn(LED_FAULT);
 		}
 		else
 		{
@@ -741,11 +779,20 @@ static void AppTaskLED(void *p_arg)
 		
 		if(Bypass == 1)
 		{
-			bsp_LedToggle(LED_BYPASS);
+			bsp_LedOn(LED_BYPASS);
 		}
 		else
 		{
 			bsp_LedOff(LED_BYPASS);
+		}
+		
+		if(FlowOff == 1)
+		{
+			bsp_LedOn(LED_VALVE);
+		}
+		else
+		{
+			bsp_LedOff(LED_VALVE);
 		}
 		
 		PowerVal = Adc1_Collect();  /* collect power */
