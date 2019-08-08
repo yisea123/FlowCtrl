@@ -22,10 +22,12 @@ void bsp_Tm1638WriteCmd(uint8_t cmd);
 void bsp_Tm1638WriteData(uint8_t addr, uint8_t data);
 
 #define RCC_ALL_TM1638 	  (RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC)
+
 #define TM1638_STB_GPIO   GPIOB
 #define TM1638_STB_PIN    GPIO_Pin_9
 #define TM1638_CLK_GPIO   GPIOC
 #define TM1638_CLK_PIN    GPIO_Pin_13
+
 #define TM1638_DIO_GPIO   GPIOA
 #define TM1638_DIO_PIN    GPIO_Pin_0
 

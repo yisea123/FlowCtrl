@@ -705,6 +705,12 @@ void sf_ReadInfo(void)
 				g_tSF.PageSize = 4 * 1024;			/* 页面大小 = 4K */
 				break;			
 
+			case W25Q16JV:
+				strcpy(g_tSF.ChipName, "W25Q16JV");
+				g_tSF.TotalSize = 2 * 1024 * 1024;	/* 总容量 = 2MByte = 16MBit */
+				g_tSF.PageSize = 4 * 1024;			/* 页面大小 = 4KByte */
+				break;				
+			
 			default:
 				strcpy(g_tSF.ChipName, "Unknow Flash");
 				g_tSF.TotalSize = 2 * 1024 * 1024;

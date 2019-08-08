@@ -176,7 +176,7 @@
           </Flash1>
           <bUseTDR>0</bUseTDR>
           <Flash2>Segger\JL2CM3.dll</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -536,6 +536,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\User\bsp\src\bsp_abcc.c</FilePath>
             </File>
+            <File>
+              <FileName>bsp_cpu_rtc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp\src\bsp_cpu_rtc.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -585,6 +590,21 @@
               <FileName>stm32f10x_tim.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_tim.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f10x_rtc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_rtc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f10x_bkp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_bkp.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f10x_pwr.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_pwr.c</FilePath>
             </File>
           </Files>
         </Group>

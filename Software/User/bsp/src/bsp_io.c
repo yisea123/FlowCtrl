@@ -27,12 +27,22 @@
 #define RELAY_OFF	1
 
 #define STATE_IN_RCC    (RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB)
-#define STATE_IN1_GPIO  GPIOA 
-#define STATE_IN1_PIN   GPIO_Pin_12
-#define STATE_IN2_GPIO  GPIOB 
-#define STATE_IN2_PIN   GPIO_Pin_3
-#define STATE_IN3_GPIO  GPIOA
-#define STATE_IN3_PIN   GPIO_Pin_15
+#if 0 /* 硬件版本1 */
+	#define STATE_IN1_GPIO  GPIOA 
+	#define STATE_IN1_PIN   GPIO_Pin_12
+	#define STATE_IN2_GPIO  GPIOB 
+	#define STATE_IN2_PIN   GPIO_Pin_3
+	#define STATE_IN3_GPIO  GPIOA
+	#define STATE_IN3_PIN   GPIO_Pin_15
+#else /* 硬件版本2 */
+	#define STATE_IN1_GPIO  GPIOA 
+	#define STATE_IN1_PIN   GPIO_Pin_14
+	#define STATE_IN2_GPIO  GPIOA 
+	#define STATE_IN2_PIN   GPIO_Pin_15
+	#define STATE_IN3_GPIO  GPIOB
+	#define STATE_IN3_PIN   GPIO_Pin_3
+#endif
+
 
 /*
 *********************************************************************************************************

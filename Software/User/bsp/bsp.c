@@ -50,7 +50,7 @@ void bsp_Init(void)
 	bsp_RelayInit();    /* 继电器初始化 */
 	bsp_InputStateInit(); /* 输入IO传感器 */
 	bsp_SensorInit(720, 60000); // cunt 10us,  max 600ms
-	
+	bsp_InitRTC();        /* 初始化RTC */
 	
 //	bsp_InitKey();		/* 初始化按键 */
 

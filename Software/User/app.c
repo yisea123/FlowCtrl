@@ -82,15 +82,17 @@ static void readParamFromFlash(void);
 *                               变量
 *******************************************************************************************************
 */
-#define KEY_UP        		KEY_Line1_K1
-#define KEY_DOWN      		KEY_Line1_K2
-#define KEY_SELECT_EXIT     KEY_Line1_K3
+#define KEY_UP        		KEY_Line1_K6
+#define KEY_DOWN      		KEY_Line1_K5
+#define KEY_SELECT_EXIT     KEY_Line1_K4
 
-#define KEY_BYPASS			KEY_Line1_K4
-#define KEY_VALVE			KEY_Line1_K5
-#define KEY_RESET			KEY_Line1_K6
+#define KEY_BYPASS			KEY_Line1_K3
+#define KEY_VALVE			KEY_Line1_K2
+#define KEY_RESET			KEY_Line1_K1
 
-
+#define ERROR_INPUT_WARNING     1
+#define ERROR_INPUT_FAULT       2
+#define ERROR_LAST_CAP          3
 
 /* 定义一个邮箱， 这只是一个邮箱指针， OSMboxCreate函数会创建邮箱必需的资源 */
 static OS_EVENT *AppUserIFMbox;
@@ -111,6 +113,17 @@ struct FlashParam
 };
 
 struct FlashParam FlashParam;
+
+struct LogParam
+{
+	uint32_t head;
+	uint32_t time;
+	uint8_t  type;
+	uint8_t  back[3];
+};
+struct LogParam Log;
+
+
 
 uint8_t isConnectOk(void)
 {
@@ -297,7 +310,11 @@ static void AppTaskStart(void *p_arg)
     CPU_Init();          
 	BSP_Tick_Init();   
 	
-
+	RTC_ReadClock();	/* 读时钟，结果存放在全局变量 g_tRTC */
+	/* 打印时钟 */
+	printf("%4d-%02d-%02d %02d:%02d:%02d\r\n", g_tRTC.Year, g_tRTC.Mon, g_tRTC.Day, 
+		g_tRTC.Hour, g_tRTC.Min, g_tRTC.Sec);
+	
 	/* 检测CPU能力，统计模块初始化。该函数将检测最低CPU占有率 */
 	#if (OS_TASK_STAT_EN > 0)
 		OSStatInit();
@@ -312,7 +329,11 @@ static void AppTaskStart(void *p_arg)
 	while (1)     
 	{ 	
 		OSTimeDlyHMSM(0, 0, 1, 0);
-		printf("input:%dhz  output:%dhz\n", 1000000/(g_usHuba1*10), 1000000/(g_usHuba2*10));
+//		printf("input:%dhz  output:%dhz\n", 1000000/(g_usHuba1*10), 1000000/(g_usHuba2*10));
+//		RTC_ReadClock();	/* 读时钟，结果存放在全局变量 g_tRTC */
+//		/* 打印时钟 */
+//		printf("%4d-%02d-%02d %02d:%02d:%02d\r\n", g_tRTC.Year, g_tRTC.Mon, g_tRTC.Day, 
+//			g_tRTC.Hour, g_tRTC.Min, g_tRTC.Sec);		
 	}      
 }
 
@@ -474,7 +495,8 @@ static void AppTaskUserIF(void *p_arg)
 			{
 				CtrlInputWaterCtrl(RELAY_ON);  /* 打开电磁阀  - 打开进水 */
 				FlowOff = 0;
-				Bypass = 1;                    /* Bypass为1，则Relay1不再关闭  */					
+				Bypass = 1;                    /* Bypass为1，则Relay1不再关闭  */		
+                SetByPass = 1;
 			}			
 			else if (msg == KEY_VALVE)		
 			{ 
@@ -489,6 +511,7 @@ static void AppTaskUserIF(void *p_arg)
 			{
 
 			}
+			timeout = 0;
 		}
 		else
 		{
@@ -496,11 +519,8 @@ static void AppTaskUserIF(void *p_arg)
 			if(timeout >= 30)
 			{
 				timeout = 0;
-				if(key_up_down_fun == PARAM_SELECT)
-				{
-					select_state = FLOW_VALUE;
-					key_up_down_fun = FUN_SELECT;				
-				}			
+				select_state = FLOW_VALUE;
+				key_up_down_fun = FUN_SELECT;							
 			}
 		}
 		
@@ -537,8 +557,6 @@ static void AppTaskUserIF(void *p_arg)
 			default:
 				break;
 		}		
-		
-		
 	}		
 }
 
@@ -575,6 +593,8 @@ static void AppTaskCom(void *p_arg)
 		}
    } 						  	 	       											  
 }
+
+
 
 
 
@@ -786,13 +806,13 @@ static void AppTaskLED(void *p_arg)
 			bsp_LedOff(LED_BYPASS);
 		}
 		
-		if(FlowOff == 1)
+		if(FlowOff == 0)
 		{
-			bsp_LedOn(LED_VALVE);
+			bsp_LedOff(LED_VALVE);
 		}
 		else
 		{
-			bsp_LedOff(LED_VALVE);
+			bsp_LedOn(LED_VALVE);		
 		}
 		
 		PowerVal = Adc1_Collect();  /* collect power */

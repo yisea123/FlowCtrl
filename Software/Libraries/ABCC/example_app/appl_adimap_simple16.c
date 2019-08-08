@@ -103,7 +103,7 @@ UINT8   LeakFlowDifference =0; /* = 模拟量 *10  设定的泄露的流量差值测参数 */
 
 UINT8   SetFlowReset = 0;        /* 0:Null 1:Reset */
 UINT8   SetCloseValue = 0;       /* 0:Open 1:Close */
-UINT8   SetByPass = 0;
+UINT8   SetByPass = 0;         
 UINT8   SetExchangeCapReset = 0; /* 0:Null 1:Exchange */
 UINT8   SetParameterRequest=0;   /* 0:Null 1:Set */
 UINT8   Reserve1 = 0;

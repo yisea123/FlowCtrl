@@ -79,7 +79,7 @@
 #include "bsp_io.h"
 #include "bsp_sensor.h"
 #include "bsp_abcc.h"
-
+#include "bsp_cpu_rtc.h"
 //#include "bsp_msg.h"
 
 //#include "bsp_beep.h"
