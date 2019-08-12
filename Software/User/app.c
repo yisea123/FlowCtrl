@@ -40,7 +40,6 @@
 *                                        4. uC/CPU版本V1.30.02
 *                                        5. uC/LIB版本V1.38.01
 *                                       
-*	Copyright (C), 2015-2020, 安富莱电子 www.armfly.com
 *
 *********************************************************************************************************
 */
@@ -407,7 +406,7 @@ static void AppTaskUserIF(void *p_arg)
 		msg = *(INT8U *)(OSMboxPend(AppUserIFMbox, OS_TICKS_PER_SEC , &err));
 		if (err == OS_ERR_NONE)                             /* 无错表示成功接收到一个消息 */
 		{
-			printf("key_state = %d, select %d\n", KEY_SELECT_EXIT, select_state);
+			printf("key_state = %d, select %d\n", msg, select_state);
 			if (msg == KEY_SELECT_EXIT)		
 			{    
 //				DispTaskInfo();
