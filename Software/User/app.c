@@ -314,6 +314,8 @@ static void AppTaskStart(void *p_arg)
 	/* 打印时钟 */
 	printf("%4d-%02d-%02d %02d:%02d:%02d\r\n", g_tRTC.Year, g_tRTC.Mon, g_tRTC.Day, 
 		g_tRTC.Hour, g_tRTC.Min, g_tRTC.Sec);
+	CtrlInputWaterCtrl(RELAY_ON);  /* 打开电磁阀  - 打开进水 */
+	CtrlInputWaterCtrl(RELAY_OFF); /* 电磁阀断电 */
 	
 	/* 检测CPU能力，统计模块初始化。该函数将检测最低CPU占有率 */
 	#if (OS_TASK_STAT_EN > 0)
@@ -433,23 +435,28 @@ static void AppTaskUserIF(void *p_arg)
 					}					
 				}
 				else
-				{
+				{				
 					switch(select_state)
 					{
 						case FLOW_WARNING_VALUE:
 							FlowWarningValue++;
+						    SetFlowWarningValue = FlowWarningValue;
 							break;
 						case FLOW_FAULT_VALUE:
 							FlowFaultValue++;
+						    SetFlowFaultValue = FlowFaultValue;
 							break;
 						case LEAK_RESPONSE_VALUE:
 							LeakResponseValue++;
+						    SetLeakResponseValue = LeakResponseValue;
 							break;
 						case DELAY_TO_DETECT:
 							DelayToDetect++;
+						    SetDelayToDetect = DelayToDetect;
 							break;
 						case LEAK_FLOW_DIFFERENCE:
 							LeakFlowDifference++;
+						    SetLeakFlowDifference = LeakFlowDifference;
 							break;
 						default:
 							break;
@@ -473,18 +480,23 @@ static void AppTaskUserIF(void *p_arg)
 					{
 						case FLOW_WARNING_VALUE:
 							FlowWarningValue--;
+						    SetFlowWarningValue = FlowWarningValue;;
 							break;
 						case FLOW_FAULT_VALUE:
 							FlowFaultValue--;
+						    SetFlowFaultValue = FlowFaultValue;
 							break;
 						case LEAK_RESPONSE_VALUE:
 							LeakResponseValue--;
+						    SetLeakResponseValue = LeakResponseValue;
 							break;
 						case DELAY_TO_DETECT:
 							DelayToDetect--;
+						    SetDelayToDetect = DelayToDetect;
 							break;
 						case LEAK_FLOW_DIFFERENCE:
 							LeakFlowDifference--;
+						    SetLeakFlowDifference = LeakFlowDifference;
 							break;
 						default:
 							break;
@@ -500,8 +512,16 @@ static void AppTaskUserIF(void *p_arg)
 			}			
 			else if (msg == KEY_VALVE)		
 			{ 
-				CtrlInputWaterCtrl(RELAY_ON);  /* 打开电磁阀  - 打开进水 */
-				FlowOff = 0;
+				if(FlowOff == 1)  /* 0:open 1:off */
+				{
+					CtrlInputWaterCtrl(RELAY_ON);  /* 打开电磁阀  - 打开进水 */
+					FlowOff = 0;				
+				}
+				else
+				{
+					CtrlInputWaterCtrl(RELAY_OFF);  /* 关闭电磁阀  - 关闭进水 */
+					FlowOff = 1;					
+				}
 			}	
 			else if (msg == KEY_RESET)		
 			{ 
