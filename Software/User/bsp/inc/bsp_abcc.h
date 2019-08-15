@@ -55,6 +55,7 @@
 int bsp_abccInit(void);
 uint8_t HAL_SPI_TransmitReceive(uint8_t *pTxData, uint8_t *pRxData, uint16_t Size, uint32_t Timeout);
 
+
 #endif
 
 /*****************************************  (END OF FILE) **********************************************/

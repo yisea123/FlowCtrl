@@ -34,6 +34,7 @@
 
 #include "appl_adi_config.h"
 
+
 #if ( APPL_ACTIVE_ADI_SETUP == APPL_ADI_SETUP_SIMPLE_16 )
 
 #if (  ABCC_CFG_STRUCT_DATA_TYPE || ABCC_CFG_ADI_GET_SET_CALLBACK )
@@ -103,7 +104,7 @@ UINT8   LeakFlowDifference =0; /* = 模拟量 *10  设定的泄露的流量差值测参数 */
 
 UINT8   SetFlowReset = 0;        /* 0:Null 1:Reset */
 UINT8   SetCloseValue = 0;       /* 0:Open 1:Close */
-UINT8   SetByPass = 0;         
+UINT8   SetByPass = 0;           /* 0:NoByPass, 1:Bypass */
 UINT8   SetExchangeCapReset = 0; /* 0:Null 1:Exchange */
 UINT8   SetParameterRequest=0;   /* 0:Null 1:Set */
 UINT8   Reserve1 = 0;
@@ -179,7 +180,7 @@ const AD_AdiEntryType APPL_asAdiEntryList[] =
 	{ 0x1F,"Reserve3", 	            ABP_UINT8,  1, APPL_READ_MAP_WRITE_ACCESS_DESC, { { &Reserve1,	           &appl_sUint8Prop } } },
 	{ 0x20,"SetFlowWarningValue",   ABP_UINT8,  1, APPL_READ_MAP_WRITE_ACCESS_DESC, { { &SetFlowWarningValue,  &appl_sUint8Prop } } },
 	{ 0x21,"SetFlowFaultValue",     ABP_UINT8,  1, APPL_READ_MAP_WRITE_ACCESS_DESC, { { &SetFlowFaultValue,    &appl_sUint8Prop } } },
-	{ 0x22,"SetLeakResponseValue",  ABP_UINT8,  1, APPL_READ_MAP_WRITE_ACCESS_DESC, { { &SetLeakResponseValue, &appl_sUint8Prop } } },
+	{ 0x22,"SetLeakResponseValue",  ABP_UINT8,   1, APPL_READ_MAP_WRITE_ACCESS_DESC, { { &SetLeakResponseValue, &appl_sUint8Prop } } },
 	{ 0x23,"SetDelayToDetect",      ABP_UINT8,  1, APPL_READ_MAP_WRITE_ACCESS_DESC, { { &SetDelayToDetect,     &appl_sUint8Prop } } },
 	{ 0x24,"SetLeakFlowDifference", ABP_UINT8,  1, APPL_READ_MAP_WRITE_ACCESS_DESC, { { &SetLeakFlowDifference,&appl_sUint8Prop } } }
 };

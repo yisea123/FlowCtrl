@@ -272,7 +272,7 @@ extern UINT8   SetFlowReset ;        /* 0:Null 1:Reset */
 extern UINT8   SetCloseValue ;       /* 0:Open 1:Close */
 extern UINT8   SetByPass ;
 extern UINT8   SetExchangeCapReset ; /* 0:Null 1:Exchange */
-extern UINT8   SetParameterRequest;/* 0:Null 1:Set */
+extern UINT8   SetParameterRequest;  /* 0:Null 1:Set */
 extern UINT8   Reserve1 ;
 extern UINT8   Reserve2 ;
 extern UINT8   Reserve3 ;

@@ -20,7 +20,7 @@
 */
 
 #include "bsp.h"
-
+#include <ucos_ii.h>
 
 /* 定义每个串口结构体变量 */
 #if UART1_FIFO_EN == 1
@@ -563,7 +563,7 @@ static void InitHardUart(void)
 	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 	USART_Init(USART1, &USART_InitStructure);
 
-	USART_ITConfig(USART1, USART_IT_RXNE, DISABLE);	/* 不使能接收中断 */
+	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);	/* 使能接收中断 */
 	/*
 		USART_ITConfig(USART1, USART_IT_TXE, ENABLE);
 		注意: 不要在此处打开发送中断
@@ -816,7 +816,13 @@ static void ConfigUartNVIC(void)
 
 	/* Configure the NVIC Preemption Priority Bits */
 	/*	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);  --- 在 bsp.c 中 bsp_Init() 中配置中断优先级组 */
-
+	
+	/* 使能串口1中断 */
+	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+	
 #if UART1_FIFO_EN == 1
 	/* 使能串口1中断 */
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
@@ -1086,6 +1092,45 @@ static void UartIRQ(UART_T *_pUart)
 *	返 回 值: 无
 *********************************************************************************************************
 */
+uint8_t Uart_RecvValue = 0;
+extern OS_EVENT *AppDebugMbox;
+void USART1_IRQHandler(void)
+{
+	OS_CPU_SR  cpu_sr;
+	uint8_t ch;
+	static uint8_t ch_last = 0;
+	static uint8_t state = 0;
+
+	OS_ENTER_CRITICAL();                         
+	OSIntEnter();
+	OS_EXIT_CRITICAL();
+	
+	/* 处理接收中断  */
+	if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+	{
+		/* 从串口接收数据寄存器读取数据存放到接收FIFO */
+		ch = USART_ReceiveData(USART1);
+		if(state == 0)
+		{
+			if((ch == 0xaa) && (ch_last == 0x55))
+			{
+				state = 1;
+			}		
+		}
+		else
+		{
+			Uart_RecvValue = ch;
+			OSMboxPost(AppDebugMbox, &Uart_RecvValue);
+			state = 0;
+			
+		}
+		ch_last = ch;
+	}
+	
+	OSIntExit();  
+}
+
+
 #if UART1_FIFO_EN == 1
 void USART1_IRQHandler(void)
 {

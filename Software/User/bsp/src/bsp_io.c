@@ -19,9 +19,9 @@
 
 #define RELAY_OUT_RCC   (RCC_APB2Periph_GPIOA)
 #define RELAY_OUT1_GPIO GPIOA 
-#define RELAY_OUT1_PIN  GPIO_Pin_8
+#define RELAY_OUT1_PIN  GPIO_Pin_11
 #define RELAY_OUT2_GPIO GPIOA
-#define RELAY_OUT2_PIN  GPIO_Pin_11
+#define RELAY_OUT2_PIN  GPIO_Pin_8
 
 #define RELAY_ON	0
 #define RELAY_OFF	1

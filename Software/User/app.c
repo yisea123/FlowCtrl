@@ -95,9 +95,10 @@ static void readParamFromFlash(void);
 
 /* 定义一个邮箱， 这只是一个邮箱指针， OSMboxCreate函数会创建邮箱必需的资源 */
 static OS_EVENT *AppUserIFMbox;
-
+OS_EVENT *AppDebugMbox;
 /*创建一个信号量*/
 static OS_EVENT *AppPrintfSemp;
+
 
 struct FlashParam
 {
@@ -121,7 +122,6 @@ struct LogParam
 	uint8_t  back[3];
 };
 struct LogParam Log;
-
 
 
 uint8_t isConnectOk(void)
@@ -151,6 +151,11 @@ static void readParamFromFlash(void)
 	}
 	else
 	{
+		FlowWarningValue = 30;  /* 默认参数 */
+		FlowFaultValue = 15;
+		LeakResponseValue = 10;
+		DelayToDetect = 20;
+		LeakFlowDifference = 20;
 		writeParamFromFlash();
 	}
 }
@@ -242,6 +247,17 @@ void CalcFlowValue(void)
 	ReturnFlowInLPM = sum / HUBA_BUF_LEN * 10 * 0.186;	
 }
 
+void Printf_Param(void)
+{
+	printf("Param---------\n");
+	printf("Warning: %d\n", FlowWarningValue);
+	printf("Fault: %d\n", FlowFaultValue);
+	printf("LeakRespTime: %d\n", LeakResponseValue);
+	printf("DelayToDetect: %d\n",DelayToDetect);
+	printf("LeakFlowDiffTime: %d\n",LeakFlowDifference);
+}
+
+
 
 /*
 *******************************************************************************************************
@@ -299,6 +315,8 @@ static void AppTaskStart(void *p_arg)
 {
 	uint32_t key = 0;
 	uint8_t i = 0;
+	uint8_t msg;
+	uint8_t err;
 	
     /* 仅用于避免编译器告警，编译器不会产生任何目标代码 */	
     (void)p_arg;  
@@ -314,7 +332,8 @@ static void AppTaskStart(void *p_arg)
 	printf("%4d-%02d-%02d %02d:%02d:%02d\r\n", g_tRTC.Year, g_tRTC.Mon, g_tRTC.Day, 
 		g_tRTC.Hour, g_tRTC.Min, g_tRTC.Sec);
 	CtrlInputWaterCtrl(RELAY_ON);  /* 打开电磁阀  - 打开进水 */
-	CtrlInputWaterCtrl(RELAY_OFF); /* 电磁阀断电 */
+	FlowOff = 0;	
+	CtrlPumpWater(RELAY_OFF); /* 电磁阀断电 */
 	
 	/* 检测CPU能力，统计模块初始化。该函数将检测最低CPU占有率 */
 	#if (OS_TASK_STAT_EN > 0)
@@ -329,12 +348,25 @@ static void AppTaskStart(void *p_arg)
 	
 	while (1)     
 	{ 	
-		OSTimeDlyHMSM(0, 0, 1, 0);
-//		printf("input:%dhz  output:%dhz\n", 1000000/(g_usHuba1*10), 1000000/(g_usHuba2*10));
-//		RTC_ReadClock();	/* 读时钟，结果存放在全局变量 g_tRTC */
-//		/* 打印时钟 */
-//		printf("%4d-%02d-%02d %02d:%02d:%02d\r\n", g_tRTC.Year, g_tRTC.Mon, g_tRTC.Day, 
-//			g_tRTC.Hour, g_tRTC.Min, g_tRTC.Sec);		
+		msg = *(INT8U *)(OSMboxPend(AppDebugMbox, 0 , &err));
+		if (err == OS_ERR_NONE)                             /* 无错表示成功接收到一个消息 */
+		{
+			if (msg == 0x01)  /* 0x55 0xAA 0x01: 打印参数 */	
+			{
+				Printf_Param();
+			}
+			else if(msg == 0x02) /* 0x55 0xAA 0x02: 打印频率 */
+			{
+				printf("input:%dhz %dhz; output:%dhz %dhz\n", 1000000/(g_usHuba1*10), SupplyFlowInLPM,  1000000/(g_usHuba2*10), ReturnFlowInLPM);
+				
+			}
+			else if(msg == 0x03) /* 0x55 0xAA 0x02: 打印RTC时间 */
+			{
+				RTC_ReadClock();	/* 读时钟，结果存放在全局变量 g_tRTC */				
+				printf("%4d-%02d-%02d %02d:%02d:%02d\r\n", g_tRTC.Year, g_tRTC.Mon, g_tRTC.Day, 
+					g_tRTC.Hour, g_tRTC.Min, g_tRTC.Sec);						
+			}
+		}
 	}      
 }
 
@@ -468,7 +500,7 @@ static void AppTaskUserIF(void *p_arg)
 				if(key_up_down_fun == FUN_SELECT)
 				{
 					select_state--;
-					if(select_state == 0)
+					if(select_state <= 0)
 					{
 						select_state = 5;
 					}					
@@ -486,7 +518,7 @@ static void AppTaskUserIF(void *p_arg)
 						    SetFlowFaultValue = FlowFaultValue;
 							break;
 						case LEAK_RESPONSE_VALUE:
-							LeakResponseValue--;
+							LeakResponseValue--;				
 						    SetLeakResponseValue = LeakResponseValue;
 							break;
 						case DELAY_TO_DETECT:
@@ -504,10 +536,20 @@ static void AppTaskUserIF(void *p_arg)
 			}		
 			else if (msg == KEY_BYPASS)
 			{
-				CtrlInputWaterCtrl(RELAY_ON);  /* 打开电磁阀  - 打开进水 */
-				FlowOff = 0;
-				Bypass = 1;                    /* Bypass为1，则Relay1不再关闭  */		
-                SetByPass = 1;
+				if(SetByPass == 0)   /* 0:NoByPass, 1:Bypass */
+				{
+					CtrlInputWaterCtrl(RELAY_ON);  /* 打开电磁阀  - 打开进水 */
+					FlowOff = 0;
+					Bypass = 1;                    /* Bypass为1，则Relay1不再关闭  */		
+					SetByPass = 1;					
+				}
+				else
+				{
+					CtrlInputWaterCtrl(RELAY_OFF);  /* 关闭电磁阀  - 关闭进水 */
+					FlowOff = 1;
+					Bypass = 0;                    	
+					SetByPass = 0;						
+				}
 			}			
 			else if (msg == KEY_VALVE)		
 			{ 
@@ -671,7 +713,7 @@ static void AppTaskFlow(void *p_arg)
 		{
 			FlowWarningValue   = SetFlowWarningValue; 
 			FlowFaultValue     = SetFlowFaultValue;
-			LeakResponseValue  = SetLeakResponseValue;
+			LeakResponseValue  = SetLeakResponseValue * 5;
 			DelayToDetect      = SetDelayToDetect;
 			LeakFlowDifference = SetLeakFlowDifference; 
 		}
@@ -887,7 +929,7 @@ static void AppTaskCreate (void)
 	/* 创建邮箱(MBOX) */
 	AppUserIFMbox = OSMboxCreate((void *)0);
 	AppPrintfSemp = OSSemCreate(1);	  /* 创建一个信号量 实现信号量互斥 */
-
+	AppDebugMbox = OSMboxCreate((void *)0);
 
 	/* 创建AppTaskUserIF任务 */
 	OSTaskCreateExt(AppTaskUserIF,
