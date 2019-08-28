@@ -123,6 +123,27 @@ struct LogParam
 };
 struct LogParam Log;
 
+#define ERR_NO_ERR          0x00
+#define ERR_FLOW_WARNING    0x01
+#define ERR_FLOW_FAULT      0x02
+#define ERR_LOST_CAP        0x04
+
+typedef struct
+{
+	uint8_t head1;
+	uint8_t head2;
+	uint32_t time;
+	uint8_t code;
+	uint8_t sum;
+}FlashLog_t;
+
+#define FLASH_LOG_START_ADDR   0x100000
+#define FLASH_LOG_END_ADDR     0x600000
+
+static FlashLog_t FlashLog;  /* flash log */
+static FlashLog_t FlashReadLog;  /* flash log */
+static uint8_t FlashLogRefresh;
+static uint32_t FlashLogWriteAddr = FLASH_LOG_START_ADDR; /* 1M位置开始 */
 
 uint8_t isConnectOk(void)
 {
@@ -210,6 +231,86 @@ static void writeParamFromFlash(void)
 		else
 		{
 			printf("flash write error\n");
+		}
+	}
+}
+
+void writeLogToFlash(void)
+{
+	static uint8_t lastCode = ERR_NO_ERR;
+		
+	if( (FlashLog.code != ERR_FLOW_WARNING) && 
+		(FlashLog.code != ERR_FLOW_FAULT) && 
+	    (FlashLog.code != ERR_LOST_CAP) )
+	{
+		FlashLog.code = ERR_NO_ERR;
+	}
+	else if(FlashLog.code != lastCode)
+	{
+		FlashLog.head1 = 0x66;
+		FlashLog.head2 = 0x88;
+		FlashLog.time = RTC_ReadUTC();
+		FlashLog.sum = (uint8_t)(FlashLog.head1 + FlashLog.head2 + FlashLog.time + FlashLog.code);
+		
+		if(1 == sf_WriteBuffer((uint8_t*)&FlashParam, FlashLogWriteAddr, sizeof(FlashLog_t)))
+		{
+			FlashLogWriteAddr += sizeof(FlashLog_t);
+			if(FlashLogWriteAddr >= FLASH_LOG_END_ADDR)
+			{
+				FlashLogWriteAddr = FLASH_LOG_START_ADDR;
+			}
+		}		
+		else
+		{
+			printf("flash write error\n");
+		}		
+	}
+}
+
+uint8_t readOneLogFromFlash(uint32_t Addr, FlashLog_t *log)
+{
+	sf_ReadBuffer((uint8_t*)&FlashReadLog, Addr, sizeof(FlashLog_t));
+	if( (FlashReadLog.head1 == 0x66) && 
+		(FlashReadLog.head1 == 0x88) && 
+	    (FlashReadLog.sum == (uint8_t)(0x66 + 0x88 + FlashReadLog.time + FlashReadLog.code)))
+	{
+		log->time = FlashReadLog.time;
+		log->code = FlashReadLog.code;
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+uint8_t readAllLogFromFlash(void)
+{
+	uint32_t addr = 0;
+	FlashLog_t log;
+	uint8_t code = 0;
+	RTC_T rtc_time;
+	uint8_t errcnt;
+	
+	for(addr=FLASH_LOG_START_ADDR; addr<FLASH_LOG_START_ADDR-sizeof(FlashLog_t);)
+	{
+		code = readOneLogFromFlash(addr, &log);
+		if(code != 0)
+		{
+			UtcToTime(log.time, &rtc_time);
+			printf("Time:%4d-%02d-%02d %02d:%02d:%02d, Code:%d \r\n", g_tRTC.Year, g_tRTC.Mon, g_tRTC.Day, 
+				g_tRTC.Hour, g_tRTC.Min, g_tRTC.Sec, log.code);
+			addr += sizeof(FlashLog_t);
+			errcnt = 0;
+		}
+		else
+		{
+			addr += 1;
+			errcnt++;
+			if(errcnt >= sizeof(FlashLog_t) + 2)
+			{
+				break;
+			}
 		}
 	}
 }
@@ -387,7 +488,7 @@ static void AppTaskKeyScan(void *p_arg)
 		  
 	while(1)
 	{    
-		ucTemp = bsp_Tm1638ReadKey();;   /* 读取键盘 */
+		ucTemp = bsp_Tm1638ReadKey();   /* 读取键盘 */
 		if (ucTemp > 0)
 		{	
 			ucKeyCode = ucTemp;
@@ -785,6 +886,7 @@ static void AppTaskFlow(void *p_arg)
 			MinimalFlow = 0;
 			FlowWarning = 1;
 			FlowFault = 0;
+			FlashLog.code = ERR_FLOW_WARNING;
 		}
 		if(ReturnFlowInLPM <= FlowFaultValue)
 		{
@@ -792,6 +894,7 @@ static void AppTaskFlow(void *p_arg)
 			MinimalFlow = 0;
 			FlowWarning = 0;
 			FlowFault = 1;
+			FlashLog.code = ERR_FLOW_FAULT;
 		}
 		
 		/* 电极帽丢失检测 */
@@ -806,7 +909,7 @@ static void AppTaskFlow(void *p_arg)
 					FlowOff = 0;
 					CtrlPumpWater(RELAY_ON);					
 				}
-   
+				FlashLog.code = ERR_LOST_CAP; 
 				Leak = 1;
 			}
 		}
@@ -818,6 +921,7 @@ static void AppTaskFlow(void *p_arg)
 		
 		/* flash 参数更新 */
 		writeParamFromFlash();
+		writeLogToFlash();
 		
 		OSTimeDlyHMSM(0, 0, 0, 5);		
 	}

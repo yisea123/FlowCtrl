@@ -10,7 +10,6 @@
 *		版本号  日期       作者    说明
 *		v1.0    2015-08-08 armfly  首版.安富莱电子原创
 *
-*	Copyright (C), 2015-2016, 安富莱电子 www.armfly.com
 *
 *********************************************************************************************************
 */
@@ -235,6 +234,89 @@ uint8_t RTC_WriteClock(uint16_t _year, uint8_t _mon, uint8_t _day, uint8_t _hour
 *	返 回 值: 1表示成功 0表示错误
 *********************************************************************************************************
 */
+uint32_t RTC_ReadUTC(void)
+{
+	return RTC_GetCounter();     
+}
+
+void UtcToTime(uint32_t utc, RTC_T *rtc_time)
+{
+	static uint16_t daycnt = 0;
+	uint32_t temp = 0;
+	uint16_t temp1 = 0;
+	
+	temp = utc / 86400;   /* 得到天数 */
+
+	if (daycnt != temp)	/* 超过一天了 */
+	{       
+		daycnt = temp;
+		temp1 = 1970;  /* 从1970年开始 */
+
+		while (temp >= 365)
+		{                          
+			if (Is_Leap_Year(temp1))	/* 是闰年 */
+			{
+				if (temp >= 366)
+				{
+					temp -= 366;		/* 闰年的秒钟数 */
+				}
+				else
+				{
+					//temp1++;		/* armfly: 这里闰年处理错误，不能加1 */
+					break;
+				}  
+            }
+			else 
+			{
+				temp -= 365;       /* 平年 */
+			}
+			temp1++;  
+		}   
+		rtc_time->Year = temp1;	/* 得到年份 */
+		
+		temp1 = 0;
+		while (temp >= 28)	/* 超过了一个月 */
+		{
+			if(Is_Leap_Year(rtc_time->Year) && temp1 == 1)	/* 当年是不是闰年/2月份 */
+			{
+				if (temp >= 29)
+				{
+					temp -= 29;	/* 闰年的秒钟数 */
+				}
+				else
+				{
+					break; 
+				}
+            }
+            else 
+			{
+				if (temp >= mon_table[temp1])
+				{
+					temp -= mon_table[temp1];	/* 平年 */
+				}
+				else 
+				{
+					break;
+				}
+			}
+			temp1++;  
+		}
+		rtc_time->Mon = temp1 + 1;	/* 得到月份 */
+		rtc_time->Day = temp + 1;  /* 得到日期 */
+	}
+
+	temp = utc % 86400;    /* 得到秒钟数 */
+
+	rtc_time->Hour = temp / 3600;	/* 小时 */
+
+	rtc_time->Min = (temp % 3600) / 60; /* 分钟 */
+
+	rtc_time->Sec = (temp % 3600) % 60; /* 秒钟 */
+
+	rtc_time->Week = RTC_CalcWeek(rtc_time->Year, rtc_time->Mon, rtc_time->Day);	/* 计算星期 */	
+}
+
+
 void RTC_ReadClock(void)
 {
 	static uint16_t daycnt = 0;

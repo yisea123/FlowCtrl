@@ -10,7 +10,6 @@
 *		版本号  日期       作者    说明
 *		v1.0    2015-08-08 armfly  首版
 *
-*	Copyright (C), 2015-2016, 安富莱电子 www.armfly.com
 *
 *********************************************************************************************************
 */
@@ -33,6 +32,8 @@ void bsp_InitRTC(void);
 uint8_t RTC_WriteClock(uint16_t _year, uint8_t _mon, uint8_t _day, uint8_t _hour, uint8_t _min, uint8_t _sec);
 void RTC_ReadClock(void);
 uint8_t RTC_CalcWeek(uint16_t _year, uint8_t _mon, uint8_t _day);
+uint32_t RTC_ReadUTC(void);
+void UtcToTime(uint32_t utc, RTC_T *rtc_time);
 
 extern RTC_T g_tRTC;
 
